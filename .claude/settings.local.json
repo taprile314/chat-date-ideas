@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun:*)",
+      "Skill(claude-api)",
+      "Bash(rm:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel --yes --prod)",
+      "Bash(vercel logs:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}

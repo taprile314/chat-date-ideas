@@ -1,0 +1,22 @@
+{
+  "name": "chat-date-ideas",
+  "version": "1.0.0",
+  "description": "Telegram bot for saving and querying date ideas with Google Sheets + Gemini",
+  "scripts": {
+    "build": "bun run tsc",
+    "setup-sheet": "bun run scripts/setup-sheet.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "googleapis": "^171.4.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^6.0.2"
+  }
+}
