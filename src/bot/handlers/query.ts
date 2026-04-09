@@ -25,5 +25,31 @@ export async function handleList(chatId: number): Promise<void> {
 }
 
 export async function handleRandom(chatId: number): Promise<void> {
-  await handleQuery(chatId, 'Dame una idea aleatoria con todos los detalles.');
+  const ideas = await getAllIdeas();
+
+  if (ideas.length === 0) {
+    await sendReply(
+      chatId,
+      'Aún no tienen ideas guardadas. Usa /add para agregar la primera. 😊'
+    );
+    return;
+  }
+
+  const idea = ideas[Math.floor(Math.random() * ideas.length)];
+
+  const categoryEmoji: Record<string, string> = {
+    restaurant: '🍽️',
+    outdoors: '🌳',
+    movie: '🎬',
+    activity: '🎯',
+    travel: '✈️',
+    other: '💡',
+  };
+  const emoji = categoryEmoji[idea.category] || '💡';
+  const cost = idea.cost_exact ? `, ~$${idea.cost_exact}` : '';
+
+  await sendReply(
+    chatId,
+    `🎲 *${idea.title}*\n${emoji} ${idea.category} (${idea.cost_tier}${cost})\n${idea.description}`
+  );
 }

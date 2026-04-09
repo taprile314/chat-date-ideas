@@ -23,8 +23,13 @@ export default async function handler(
     return;
   }
 
-  // TODO: re-enable secret token validation once env vars are verified
-  // const secret = req.headers['x-telegram-bot-api-secret-token'];
+  const secret = req.headers['x-telegram-bot-api-secret-token'];
+  const expected = config.telegramSecretToken;
+  if (expected && secret !== expected) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
 
   try {
     const body = await parseBody(req);
