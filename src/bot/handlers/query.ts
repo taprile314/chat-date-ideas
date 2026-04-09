@@ -46,7 +46,7 @@ export async function handleRandom(chatId: number): Promise<void> {
     other: '💡',
   };
   const emoji = categoryEmoji[idea.category] || '💡';
-  const cost = idea.cost_exact ? `, ~$${idea.cost_exact}` : '';
+  const cost = idea.cost_exact !== null ? `, ~$${idea.cost_exact}` : '';
 
   await sendReply(
     chatId,

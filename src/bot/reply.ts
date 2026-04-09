@@ -24,7 +24,7 @@ export async function sendReply(
 
   if (!res.ok) {
     // Retry without parse_mode — Markdown special chars in AI text may break parsing
-    await fetch(`${TELEGRAM_API}/sendMessage`, {
+    const retry = await fetch(`${TELEGRAM_API}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -32,5 +32,9 @@ export async function sendReply(
         text: truncated,
       }),
     });
+
+    if (!retry.ok) {
+      console.error(`sendReply failed for chat ${chatId}: ${retry.status} ${retry.statusText}`);
+    }
   }
 }
