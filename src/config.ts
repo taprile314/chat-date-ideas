@@ -18,7 +18,11 @@ function getServiceAccount(): { client_email: string; private_key: string } {
   };
 }
 
-const serviceAccount = getServiceAccount();
+let _serviceAccount: { client_email: string; private_key: string } | undefined;
+function lazyServiceAccount() {
+  if (!_serviceAccount) _serviceAccount = getServiceAccount();
+  return _serviceAccount;
+}
 
 export const config = {
   get telegramToken() {
@@ -28,10 +32,10 @@ export const config = {
     return process.env['TELEGRAM_SECRET_TOKEN'] || '';
   },
   get googleServiceAccountEmail() {
-    return serviceAccount.client_email;
+    return lazyServiceAccount().client_email;
   },
   get googlePrivateKey() {
-    return serviceAccount.private_key;
+    return lazyServiceAccount().private_key;
   },
   get googleSheetId() {
     return required('GOOGLE_SHEET_ID');
