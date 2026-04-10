@@ -12,7 +12,7 @@ export async function sendReply(
       ? text.slice(0, MAX_LENGTH - 3) + '...'
       : text;
 
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+  const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -21,4 +21,20 @@ export async function sendReply(
       parse_mode: 'Markdown',
     }),
   });
+
+  if (!res.ok) {
+    // Retry without parse_mode — Markdown special chars in AI text may break parsing
+    const retry = await fetch(`${TELEGRAM_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: truncated,
+      }),
+    });
+
+    if (!retry.ok) {
+      console.error(`sendReply failed for chat ${chatId}: ${retry.status} ${retry.statusText}`);
+    }
+  }
 }
