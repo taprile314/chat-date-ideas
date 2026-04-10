@@ -1,7 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "outputDirectory": "",
+  "framework": "nextjs",
   "functions": {
     "api/webhook.ts": {
       "maxDuration": 55

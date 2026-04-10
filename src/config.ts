@@ -39,4 +39,7 @@ export const config = {
   get geminiApiKey() {
     return required('GEMINI_API_KEY');
   },
+  get frontendPassword() {
+    return process.env['FRONTEND_PASSWORD'] || '';
+  },
 } as const;
