@@ -2,7 +2,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config';
 import type { DateIdea, ParsedAdd } from '../types/idea';
 
-const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+let _genAI: GoogleGenerativeAI | undefined;
+function getGenAI() {
+  if (!_genAI) _genAI = new GoogleGenerativeAI(config.geminiApiKey);
+  return _genAI;
+}
 
 const PARSE_SYSTEM = `Eres un asistente que extrae datos estructurados de ideas de citas/salidas.
 Devuelve SOLO un JSON válido sin texto adicional, con este esquema:
@@ -25,7 +29,7 @@ Si no hay ideas que coincidan, sugiere que agreguen más con /add.
 Formato: usa emojis para categorías, nombre en negrita, costo entre paréntesis.`;
 
 export async function parseAddMessage(text: string): Promise<ParsedAdd> {
-  const model = genAI.getGenerativeModel({
+  const model = getGenAI().getGenerativeModel({
     model: 'gemini-2.5-flash',
     systemInstruction: PARSE_SYSTEM,
   });
@@ -55,7 +59,7 @@ export async function answerQuery(
   ideas: DateIdea[],
   question: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({
+  const model = getGenAI().getGenerativeModel({
     model: 'gemini-2.5-flash',
     systemInstruction: QUERY_SYSTEM,
   });
