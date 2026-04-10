@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Telegram bot for saving and querying date ideas with Google Sheets + Gemini",
   "scripts": {
-    "build": "bun run tsc",
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
     "setup-sheet": "bun run scripts/setup-sheet.ts"
   },
   "keywords": [],
@@ -11,11 +13,18 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/postcss": "^4.2.2",
     "googleapis": "^171.4.0",
+    "next": "^16.2.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
     "typescript": "^6.0.2"
   }
