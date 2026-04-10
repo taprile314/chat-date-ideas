@@ -1,9 +1,4 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "functions": {
-    "api/webhook.ts": {
-      "maxDuration": 55
-    }
-  }
+  "framework": "nextjs"
 }
