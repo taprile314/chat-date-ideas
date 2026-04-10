@@ -1,7 +1,10 @@
 import { config } from '../config';
 
-const TELEGRAM_API = `https://api.telegram.org/bot${config.telegramToken}`;
 const MAX_LENGTH = 4096;
+
+function telegramApi() {
+  return `https://api.telegram.org/bot${config.telegramToken}`;
+}
 
 export async function sendReply(
   chatId: number,
@@ -12,7 +15,7 @@ export async function sendReply(
       ? text.slice(0, MAX_LENGTH - 3) + '...'
       : text;
 
-  const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
+  const res = await fetch(`${telegramApi()}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -24,7 +27,7 @@ export async function sendReply(
 
   if (!res.ok) {
     // Retry without parse_mode — Markdown special chars in AI text may break parsing
-    const retry = await fetch(`${TELEGRAM_API}/sendMessage`, {
+    const retry = await fetch(`${telegramApi()}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

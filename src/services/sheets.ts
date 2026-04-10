@@ -4,13 +4,18 @@ import type { DateIdea, SheetRow } from '../types/idea';
 
 const SHEET_NAME = 'ideas';
 
-const auth = new google.auth.JWT({
-  email: config.googleServiceAccountEmail,
-  key: config.googlePrivateKey,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
-const sheets = google.sheets({ version: 'v4', auth });
+let _sheets: ReturnType<typeof google.sheets> | undefined;
+function getSheets() {
+  if (!_sheets) {
+    const auth = new google.auth.JWT({
+      email: config.googleServiceAccountEmail,
+      key: config.googlePrivateKey,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    _sheets = google.sheets({ version: 'v4', auth });
+  }
+  return _sheets;
+}
 
 export async function appendIdea(idea: DateIdea): Promise<void> {
   const row: SheetRow = [
@@ -26,7 +31,7 @@ export async function appendIdea(idea: DateIdea): Promise<void> {
     idea.raw_input,
   ];
 
-  await sheets.spreadsheets.values.append({
+  await getSheets().spreadsheets.values.append({
     spreadsheetId: config.googleSheetId,
     range: `${SHEET_NAME}!A:J`,
     valueInputOption: 'RAW',
@@ -43,7 +48,7 @@ export async function updateIdea(
   id: string,
   updates: Partial<Omit<DateIdea, 'id' | 'created_at' | 'added_by' | 'raw_input'>>
 ): Promise<boolean> {
-  const res = await sheets.spreadsheets.values.get({
+  const res = await getSheets().spreadsheets.values.get({
     spreadsheetId: config.googleSheetId,
     range: `${SHEET_NAME}!A2:J`,
   });
@@ -64,7 +69,7 @@ export async function updateIdea(
   if (updates.tags !== undefined) row[8] = updates.tags.join(', ');
 
   const sheetRow = rowIndex + 2; // +1 header, +1 zero-index
-  await sheets.spreadsheets.values.update({
+  await getSheets().spreadsheets.values.update({
     spreadsheetId: config.googleSheetId,
     range: `${SHEET_NAME}!A${sheetRow}:J${sheetRow}`,
     valueInputOption: 'RAW',
@@ -75,7 +80,7 @@ export async function updateIdea(
 }
 
 export async function deleteIdea(id: string): Promise<boolean> {
-  const res = await sheets.spreadsheets.values.get({
+  const res = await getSheets().spreadsheets.values.get({
     spreadsheetId: config.googleSheetId,
     range: `${SHEET_NAME}!A2:J`,
   });
@@ -87,7 +92,7 @@ export async function deleteIdea(id: string): Promise<boolean> {
   if (rowIndex === -1) return false;
 
   // Get the sheet ID (gid) for deleteDimension
-  const sheetMeta = await sheets.spreadsheets.get({
+  const sheetMeta = await getSheets().spreadsheets.get({
     spreadsheetId: config.googleSheetId,
     fields: 'sheets.properties',
   });
@@ -97,7 +102,7 @@ export async function deleteIdea(id: string): Promise<boolean> {
   const sheetId = sheet?.properties?.sheetId ?? 0;
 
   const sheetRow = rowIndex + 1; // +1 for header (0-indexed for batchUpdate)
-  await sheets.spreadsheets.batchUpdate({
+  await getSheets().spreadsheets.batchUpdate({
     spreadsheetId: config.googleSheetId,
     requestBody: {
       requests: [
@@ -119,7 +124,7 @@ export async function deleteIdea(id: string): Promise<boolean> {
 }
 
 export async function getAllIdeas(limit = 100): Promise<DateIdea[]> {
-  const res = await sheets.spreadsheets.values.get({
+  const res = await getSheets().spreadsheets.values.get({
     spreadsheetId: config.googleSheetId,
     range: `${SHEET_NAME}!A2:J`,
   });
