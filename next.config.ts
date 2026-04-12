@@ -1,7 +1,8 @@
+import { withWorkflow } from 'workflow/next';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['googleapis'],
 };
 
-export default nextConfig;
+export default withWorkflow(nextConfig);
