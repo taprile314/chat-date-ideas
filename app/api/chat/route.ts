@@ -1,6 +1,7 @@
-import { UIMessage } from 'ai';
-import { getAllIdeas } from '@/src/services/sheets';
-import { streamQueryResponse } from '@/src/services/ai';
+import type { UIMessage } from 'ai';
+import { createUIMessageStreamResponse } from 'ai';
+import { start } from 'workflow/api';
+import { chat } from '@/workflows/chat';
 
 export const maxDuration = 55;
 
@@ -14,8 +15,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const ideas = await getAllIdeas();
-  const result = await streamQueryResponse(ideas, messages);
+  const run = await start(chat, [messages]);
 
-  return result.toUIMessageStreamResponse();
+  return createUIMessageStreamResponse({
+    stream: run.readable,
+    headers: {
+      'x-workflow-run-id': run.runId,
+    },
+  });
 }

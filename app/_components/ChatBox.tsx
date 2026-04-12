@@ -1,12 +1,12 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { WorkflowChatTransport } from '@workflow/ai';
 import { useState } from 'react';
 
 export default function ChatBox() {
   const { messages, sendMessage, status, stop, error } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    transport: new WorkflowChatTransport(),
   });
   const [input, setInput] = useState('');
 
