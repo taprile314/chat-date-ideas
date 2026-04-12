@@ -18,18 +18,21 @@ Si el usuario quiere buscar ideas, usa searchIdeas.
 Si pide ver todas las ideas, usa listAllIdeas.
 Si quiere una idea al azar, usa getRandomIdea.`;
 
+// Model factory must be a 'use step' function so WDK can serialize it
+// across workflow step boundaries (plain async functions are not serializable).
+async function createModel(): Promise<CompatibleLanguageModel> {
+  'use step';
+  const google = createGoogleGenerativeAI({
+    apiKey: process.env.GEMINI_API_KEY,
+  });
+  return google('gemini-2.5-flash') as unknown as CompatibleLanguageModel;
+}
+
 export async function chat(messages: UIMessage[]) {
   'use workflow';
 
   const agent = new DurableAgent({
-    model: async () => {
-      const google = createGoogleGenerativeAI({
-        apiKey: process.env.GEMINI_API_KEY,
-      });
-      // AI SDK v6 returns LanguageModelV3; WDK beta types expect V2|V3 compat shape.
-      // Runtime compatible per WDK docs — safe cast.
-      return google('gemini-2.5-flash') as unknown as CompatibleLanguageModel;
-    },
+    model: createModel,
     system: SYSTEM,
     tools: {
       searchIdeas: {
