@@ -1,12 +1,24 @@
-export type CostTier = 'free' | '$' | '$$' | '$$$';
+import { z } from 'zod';
 
-export type Category =
-  | 'restaurant'
-  | 'outdoors'
-  | 'movie'
-  | 'activity'
-  | 'travel'
-  | 'other';
+export const ParsedAddSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  cost_tier: z.enum(['free', '$', '$$', '$$$']),
+  cost_exact: z.number().nullable(),
+  category: z.enum([
+    'restaurant',
+    'outdoors',
+    'movie',
+    'activity',
+    'travel',
+    'other',
+  ]),
+  tags: z.array(z.string()),
+});
+
+export type ParsedAdd = z.infer<typeof ParsedAddSchema>;
+export type CostTier = ParsedAdd['cost_tier'];
+export type Category = ParsedAdd['category'];
 
 export interface DateIdea {
   id: string;
@@ -19,15 +31,6 @@ export interface DateIdea {
   category: Category;
   tags: string[];
   raw_input: string;
-}
-
-export interface ParsedAdd {
-  title: string;
-  description: string;
-  cost_tier: CostTier;
-  cost_exact: number | null;
-  category: Category;
-  tags: string[];
 }
 
 export type SheetRow = [

@@ -1,8 +1,13 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { config } from '../config';
-import type { DateIdea, ParsedAdd } from '../types/idea';
+import { generateText, streamText, Output, UIMessage, convertToModelMessages } from 'ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import type { DateIdea } from '../types/idea';
+import { ParsedAddSchema, type ParsedAdd } from '../types/idea';
 
-const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+const model = google('gemini-2.5-flash');
 
 const PARSE_SYSTEM = `Eres un asistente que extrae datos estructurados de ideas de citas/salidas.
 Devuelve SOLO un JSON válido sin texto adicional, con este esquema:
@@ -25,21 +30,16 @@ Si no hay ideas que coincidan, sugiere que agreguen más con /add.
 Formato: usa emojis para categorías, nombre en negrita, costo entre paréntesis.`;
 
 export async function parseAddMessage(text: string): Promise<ParsedAdd> {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    systemInstruction: PARSE_SYSTEM,
-  });
-
-  const result = await model.generateContent(text);
-  const raw = result.response.text().trim();
-
-  // Strip markdown code fences if present
-  const json = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-
   try {
-    return JSON.parse(json) as ParsedAdd;
+    const { output } = await generateText({
+      model,
+      system: PARSE_SYSTEM,
+      prompt: text,
+      output: Output.object({ schema: ParsedAddSchema }),
+    });
+    if (!output) throw new Error('No output generated');
+    return output;
   } catch {
-    // Fallback: use raw input as title
     return {
       title: text.slice(0, 50),
       description: text.slice(0, 200),
@@ -55,11 +55,6 @@ export async function answerQuery(
   ideas: DateIdea[],
   question: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    systemInstruction: QUERY_SYSTEM,
-  });
-
   const ideasText = ideas
     .map(
       (i) =>
@@ -69,6 +64,27 @@ export async function answerQuery(
 
   const prompt = `Estas son las ideas guardadas:\n${ideasText}\n\nPregunta: ${question}`;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  const { text } = await generateText({
+    model,
+    system: QUERY_SYSTEM,
+    prompt,
+  });
+  return text;
+}
+
+export async function streamQueryResponse(ideas: DateIdea[], messages: UIMessage[]) {
+  const ideasText = ideas
+    .map(
+      (i) =>
+        `- ${i.title} (${i.category}, ${i.cost_tier}${i.cost_exact ? `, ~$${i.cost_exact}` : ''}): ${i.description} [tags: ${i.tags.join(', ')}]`
+    )
+    .join('\n');
+
+  const system = `${QUERY_SYSTEM}\n\nEstas son las ideas guardadas:\n${ideasText}`;
+
+  return streamText({
+    model,
+    system,
+    messages: await convertToModelMessages(messages),
+  });
 }

@@ -36,9 +36,6 @@ export const config = {
   get googleSheetId() {
     return required('GOOGLE_SHEET_ID');
   },
-  get geminiApiKey() {
-    return required('GEMINI_API_KEY');
-  },
   get frontendPassword() {
     return process.env['FRONTEND_PASSWORD'] || '';
   },
