@@ -1,80 +1,82 @@
 'use client';
 
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { useState } from 'react';
 
 export default function ChatBox() {
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { messages, sendMessage, status, stop, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
+  const [input, setInput] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!question.trim()) return;
-
-    setLoading(true);
-    setError('');
-    setAnswer('');
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setAnswer(data.answer);
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Error al consultar');
-      }
-    } catch {
-      setError('Error de conexión');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const isLoading = status === 'submitted' || status === 'streaming';
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (input.trim()) {
+            sendMessage({ text: input });
+            setInput('');
+          }
+        }}
+        className="flex gap-2"
+      >
         <textarea
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Ej: ¿Qué opciones tenemos para un plan romántico y barato?"
           rows={2}
           required
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="self-end rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Buscando...' : 'Preguntar'}
-        </button>
+        {isLoading ? (
+          <button
+            type="button"
+            onClick={stop}
+            className="self-end rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Detener
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="self-end rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Preguntar
+          </button>
+        )}
       </form>
 
       {error && (
         <p className="text-sm text-red-600" role="alert">
-          {error}
+          Error: {error.message}
         </p>
       )}
 
-      {loading && (
+      <div className="space-y-2" aria-live="polite">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`rounded-xl p-4 shadow-sm ${
+              message.role === 'user' ? 'bg-blue-50' : 'bg-white'
+            }`}
+          >
+            <p className="whitespace-pre-wrap text-sm">
+              {message.parts
+                .filter((part) => part.type === 'text')
+                .map((part) => part.text)
+                .join('')}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-400">Buscando...</p>
-        </div>
-      )}
-
-      {answer && (
-        <div
-          className="rounded-xl bg-white p-4 shadow-sm"
-          aria-live="polite"
-        >
-          <p className="whitespace-pre-wrap text-sm">{answer}</p>
         </div>
       )}
     </div>
