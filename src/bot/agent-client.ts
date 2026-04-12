@@ -15,7 +15,10 @@ export async function callAgent(
     const url = `${getAppUrl()}/api/agent`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-agent-secret': process.env['TELEGRAM_SECRET_TOKEN'] || '',
+      },
       body: JSON.stringify({ text, addedBy }),
     });
 

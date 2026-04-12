@@ -5,10 +5,23 @@ import { chat } from '@/workflows/chat';
 export const maxDuration = 55;
 
 export async function POST(request: Request) {
-  const { text, addedBy } = (await request.json()) as {
-    text: string;
-    addedBy: string;
-  };
+  // Internal-only route: verify shared secret (reuses Telegram webhook secret)
+  const secret = request.headers.get('x-agent-secret');
+  const expected = process.env['TELEGRAM_SECRET_TOKEN'];
+  if (!expected || secret !== expected) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  let text: string;
+  let addedBy: string;
+  try {
+    ({ text, addedBy } = (await request.json()) as {
+      text: string;
+      addedBy: string;
+    });
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
 
   const messages: UIMessage[] = [
     {
