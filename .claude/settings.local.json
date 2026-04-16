@@ -7,7 +7,10 @@
       "Bash(vercel env:*)",
       "Bash(vercel --yes --prod)",
       "Bash(vercel logs:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git push:*)",
+      "Bash(vercel inspect:*)",
+      "WebFetch(domain:api.telegram.org)"
     ]
   }
 }

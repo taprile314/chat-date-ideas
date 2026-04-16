@@ -12,24 +12,33 @@ export default function ChatBox() {
 
   const isLoading = status === 'submitted' || status === 'streaming';
 
+  const handleSend = () => {
+    if (input.trim()) {
+      sendMessage({ text: input });
+      setInput('');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (input.trim()) {
-            sendMessage({ text: input });
-            setInput('');
-          }
+          handleSend();
         }}
         className="flex gap-2"
       >
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="Ej: ¿Qué opciones tenemos para un plan romántico y barato?"
           rows={2}
-          required
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         {isLoading ? (
